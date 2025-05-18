@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المهام</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 style="font-family: 'Cairo', sans-serif;">قائمة المهام</h1>
+        
+        <!-- زر الإشعارات -->
+        <div class="notifications-toggle">
+            <button id="notificationsBtn" class="notifications-btn">
+                <i class="fas fa-bell"></i>
+                <span class="notifications-count">0</span>
+            </button>
+        </div>
+
+        <!-- قائمة الإشعارات -->
+        <div id="notificationsPanel" class="notifications-panel">
+            <div class="notifications-header">
+                <h3>الإشعارات</h3>
+                <button id="markAllReadBtn" class="mark-all-read">
+                    <i class="fas fa-check-double"></i>
+                    تعيين الكل كمقروء
+                </button>
+            </div>
+            <div class="notifications-list" id="notificationsList">
+                <!-- ستتم إضافة الإشعارات هنا -->
+            </div>
+        </div>
+
+        <!-- نافذة طلب الإذن للإشعارات -->
+        <div id="notificationPermissionModal" class="modal">
+            <div class="modal-content notification-permission-modal">
+                <div class="modal-header">
+                    <h2><i class="fas fa-bell"></i> تفعيل الإشعارات</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="permission-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <p class="permission-text">
+                        هل تريد تلقي إشعارات عند إضافة أو تعديل أو اكتمال المهام؟
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="enableNotificationsBtn" class="enable-notifications-btn">
+                        <i class="fas fa-check"></i>
+                        تفعيل الإشعارات
+                    </button>
+                    <button id="skipNotificationsBtn" class="skip-notifications-btn">
+                        <i class="fas fa-times"></i>
+                        تخطي
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="task-input-container">
+            <div class="task-input">
+                <input type="text" id="taskInput" placeholder="أدخل مهمة جديدة...">
+                <input type="date" id="taskDate" class="task-date-input">
+            </div>
+            <div class="task-notes">
+                <textarea id="taskNotes" placeholder="إضافة ملاحظات (اختياري)..." rows="2"></textarea>
+            </div>
+            <div class="task-input-actions">
+                <label class="use-current-date">
+                    <input type="checkbox" id="useCurrentDate" checked>
+                    استخدام تاريخ اليوم
+                </label>
+                <button type="button" id="addBtn">إضافة</button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">جميع المهام</button>
+            <button class="filter-btn" data-filter="active">قيد التنفيذ</button>
+            <button class="filter-btn" data-filter="completed">مكتملة</button>
+            <button class="filter-btn" data-filter="today">مهام اليوم</button>
+            <button class="filter-btn" data-filter="week">مهام الأسبوع</button>
+        </div>
+
+        <div class="date-groups" id="dateGroups">
+            <!-- Tasks will be grouped by date here -->
+        </div>
+
+        <div class="task-stats">
+            <span id="taskCount">0 مهام متبقية</span>
+            <button onclick="saveCompletedTasks()" id="saveCompletedBtn">حفظ المهام المكتملة</button>
+            <button onclick="showArchivedTasks()" id="viewArchivedBtn">عرض المهام المحفوظة</button>
+        </div>
+    </div>
+
+    <!-- نافذة عرض المهام المحفوظة -->
+    <div id="archivedTasksModal" class="modal">
+        <div class="modal-content archived-modal">
+            <div class="modal-header archived-header">
+                <h2><i class="fas fa-archive"></i> المهام المحفوظة</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body archived-body">
+                <div class="date-filter">
+                    <label for="startDate">من تاريخ:</label>
+                    <input type="date" id="startDate">
+                    <label for="endDate">إلى تاريخ:</label>
+                    <input type="date" id="endDate">
+                    <button onclick="filterArchivedTasks()" class="filter-archived-btn">
+                        <i class="fas fa-filter"></i>
+                        تصفية
+                    </button>
+                </div>
+                <div class="archived-tasks-list" id="archivedTasksList">
+                    <!-- Archived tasks will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة التعديل -->
+    <div id="editModal" class="modal">
+        <div class="modal-content edit-modal">
+            <div class="modal-header edit-header">
+                <h2><i class="fas fa-edit"></i> تعديل المهمة</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body edit-body">
+                <div class="edit-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="edit-content">
+                    <div class="edit-field">
+                        <label for="editTaskText">عنوان المهمة</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="editTaskText" placeholder="أدخل عنوان المهمة هنا...">
+                        </div>
+                    </div>
+                    <div class="edit-field">
+                        <label for="editTaskDate">تاريخ المهمة</label>
+                        <div class="input-wrapper">
+                            <input type="date" id="editTaskDate" class="task-date-input">
+                        </div>
+                        <div class="date-option">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="editUseCurrentDate">
+                                <span class="checkbox-text">استخدام تاريخ اليوم</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="edit-field">
+                        <label for="editTaskNotes">الملاحظات</label>
+                        <div class="input-wrapper">
+                            <textarea id="editTaskNotes" placeholder="أضف ملاحظاتك هنا..." rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer edit-footer">
+                <button id="saveEditBtn" class="save-edit-btn">
+                    <i class="fas fa-check"></i>
+                    حفظ التغييرات
+                </button>
+                <button id="cancelEditBtn" class="cancel-edit-btn">
+                    <i class="fas fa-times"></i>
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد الحذف -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content delete-modal">
+            <div class="modal-header delete-header">
+                <h2><i class="fas fa-trash-alt"></i> تأكيد الحذف</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body delete-body">
+                <div class="delete-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="delete-content">
+                    <h3 class="delete-title">هل أنت متأكد من حذف هذه المهمة؟</h3>
+                    <p class="delete-message">لا يمكن التراجع عن هذه العملية بعد الحذف</p>
+                </div>
+            </div>
+            <div class="modal-footer delete-footer">
+                <button id="confirmDeleteBtn" class="confirm-delete-btn">
+                    <i class="fas fa-trash-alt"></i>
+                    نعم، احذف المهمة
+                </button>
+                <button id="cancelDeleteBtn" class="cancel-delete-btn">
+                    <i class="fas fa-times"></i>
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="script.js"></script>
+</body>
+</html> 

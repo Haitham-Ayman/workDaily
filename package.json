@@ -1,0 +1,16 @@
+{
+  "name": "task-manager",
+  "version": "1.0.0",
+  "description": "Task Manager with Database Support",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "debug": "^4.4.1",
+    "express": "^4.21.2",
+    "finalhandler": "^2.1.0",
+    "moment": "^2.30.1",
+    "sqlite3": "^5.1.7"
+  }
+}
