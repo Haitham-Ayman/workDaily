@@ -7,6 +7,9 @@ const dateGroups = document.getElementById('dateGroups');
 const taskCount = document.getElementById('taskCount');
 const filterButtons = document.querySelectorAll('.filter-btn');
 const addButton = document.getElementById('addBtn');
+const notificationsBtn = document.getElementById('notificationsBtn');
+const notificationsPanel = document.getElementById('notificationsPanel');
+const markAllReadBtn = document.getElementById('markAllReadBtn');
 
 // Initialize tasks array from localStorage or empty array
 let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
@@ -18,6 +21,25 @@ let currentDeletingTaskId = null;
 
 // تعريف المتغيرات العامة
 let currentEditingTaskId = null;
+
+// إضافة مستمعي الأحداث للإشعارات
+notificationsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    notificationsPanel.classList.toggle('show');
+    renderNotifications();
+});
+
+// إغلاق لوحة الإشعارات عند النقر خارجها
+document.addEventListener('click', (e) => {
+    if (!notificationsPanel.contains(e.target) && !notificationsBtn.contains(e.target)) {
+        notificationsPanel.classList.remove('show');
+    }
+});
+
+// تعيين جميع الإشعارات كمقروءة
+markAllReadBtn.addEventListener('click', () => {
+    markAllNotificationsAsRead();
+});
 
 // Set default date
 function setDefaultDate() {
